@@ -1,7 +1,7 @@
 #-*- coding:utf-8 -*-
 
 #Importing libs
-import re, os, sys, ast, random, base64, time, json
+import re, os, sys, ast, random, base64, time, json, hashlib
 import astunparse
 from lib.ol.main import onelinerize
 
@@ -13,9 +13,11 @@ except:
 
 #Constants
 ignoreFiles = [".DS_Store", "__init__.py", "config.py"]
-ignoreEnds = ["pyc"]
+ignoreEnds = ["pyc","uninit"]
 supportedOS = ["Windows", "Darwin", "Linux"]
 dataLoc = "db/data.json"
+
+idf = "!@knicky.%s@!"
 
 class utils():
     @staticmethod
@@ -198,6 +200,28 @@ class utils():
         except Exception as e:
             print "[x] Error in %s" % dataLoc
             raise e
+    
+    @staticmethod
+    def getSHA1(content):
+        return str(hashlib.sha1(content).hexdigest())
+
+    @staticmethod
+    def updateFile(fileName, updateList):
+        try:
+            file = open(fileName, 'r')
+            newFile = open(fileName.replace("uninit", "py"), 
+                "w")
+            for line in file:
+                for updates in updateList:
+                    if idf % updates["original"] in line:
+                        line = line.replace(idf % updates["original"], 
+                            updates["after"])
+                newFile.write(line)
+            file.close()
+            newFile.close()
+        except:
+            return "[!] Error in updating"
+
 
 class API():
     @staticmethod
@@ -398,6 +422,13 @@ class beautify():
         return cls.tm(result)
 
     @classmethod
+    def bS(cls, info):
+        result = [["Argument", "Description"]]
+        for i in info:
+            result.append([i["original"], i["desc"]])
+        return cls.tm(result)
+
+    @classmethod
     def getModuleInfo(cls, path='module'):
         info = API.getModuleInfo(path)
         return cls.bM(info)
@@ -416,3 +447,9 @@ class beautify():
     def receiveInfo(cls, projName, _range = 10):
         info = API.receiveInfo(projName, _range)
         return cls.bR(info)
+
+    @classmethod
+    def showInfo(cls, updateList):
+        return cls.bS(updateList)
+
+

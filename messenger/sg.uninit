@@ -1,9 +1,9 @@
-__sys__ = "*";
-__name__ = "Sendgrid"
+__sys__ = ["Windows", "Darwin", "Linux"]
+__name__ = "sendgrid"
 __desc__ = "Use sendgrid"
+__initiated__ = "required"
 
-
-def send(_content, _module):
+def send(_content, _module, _projName):
     import time, os, email, json, string, base64
     import sendgrid
     import getpass
@@ -12,41 +12,41 @@ def send(_content, _module):
     _content = str(_content)
     _module = str(_module)
     
-    apiKey = "CHANGE HERE"
-    toEmailAdd = "CHANGE HERE"
-    
+    apiKey = "!@knicky.apiKey@!"
+    _user = "!@knicky.user@!"
+
     sg = sendgrid.SendGridAPIClient(apikey = apiKey)
     fromEmail = Email("knicky@knicky-test.com")
-    toEmail = Email(toEmailAdd)
+    toEmail = Email(_user)
     subject = "%s 's test" % randint(0, 20000)
-    content = Content("text/plain", "@msgstart@%s@msgend@" % {
+    content = Content("text/plain", "!knicky_msg!@msgstart@%s@msgend@" % {
         "_content": base64.b64encode(_content),
         "_id": "%s" % str(time.time()) + str(randint(0, 100)),
         "_date": str(time.time()),
         "_from": getpass.getuser(),
-        "_byModule": _module
+        "_byModule": _module,
+        "_projName": _projName
     })
     mail = Mail(fromEmail, subject, toEmail, content)
     response = sg.client.mail.send.post(request_body=mail.get())
 
-
-def receive(_range, _page):
+def receive(_range, _projName):
     import time, os, email, json, string, base64
     import poplib
-    
-    _server = "CHANGE HERE"   
-    _user = "CHANGE HERE"
-    _password = "CHANGE HERE"
-    
+
+    _server = "!@knicky.server@!"
+    _user = "!@knicky.user@!"
+    _password = "!@knicky.password@!"
+
     server = poplib.POP3_SSL(_server)
     server.user(_user)
     server.pass_(_password)
     resp, items, octets = server.list()
-    _range = _range if len(items) > _range else len(items)
-    _page = _page if len(items) / _range > _page else len(items) / _range
+    _rangeL = [_range if len(items) > _range else len(items), len(items)]
     result = []
-    for m in range(_range * (_page - 1), _range * _page):
-        id, size = string.split(items[m])
+    lCounter = 0
+    for s in range(_rangeL[1]):
+        id, size = string.split(items[s])
         resp, text, octets = server.retr(id)
         content = ""
         for i in text:
@@ -56,7 +56,12 @@ def receive(_range, _page):
                 content += i.replace("=","")
             else:
                 content += i
-        result.append(json.loads(content.split("@msgstart@")[1]\
-            .split("@msgend@")[0].replace("'", '"')))
-    
+        if "!knicky_msg!" in content:
+            resultTemp = json.loads(content.split("@msgstart@")[1]\
+                .split("@msgend@")[0].replace("'", '"'))
+            if resultTemp["_projName"] == _projName:
+                result.append(resultTemp)
+                lCounter += 1
+        if lCounter == _range:
+            break
     return result

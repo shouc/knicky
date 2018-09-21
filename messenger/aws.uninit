@@ -1,0 +1,10 @@
+__sys__ = ["Windows", "Darwin", "Linux"];
+__name__ = "AWS"
+__desc__ = "Use AWS"
+
+
+def send(_content, _module, _projName):
+    pass
+
+def receive(_range, _projName):
+    pass
