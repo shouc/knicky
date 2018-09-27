@@ -1,5 +1,5 @@
 import core
-import sha1Info
+import lib.sha1Info
 
 def sgUpdate(showInfo=False, _user="None",
     _password="None", _server="None", 
@@ -14,7 +14,7 @@ def sgUpdate(showInfo=False, _user="None",
         return core.beautify.showInfo(updateList)
     try:
         temp = open("messenger/sg.uninit").read()
-        if core.utils.getSHA1(temp) == sha1Info.sg:
+        if core.utils.getSHA1(temp) == lib.sha1Info.sg:
             core.utils.updateFile("messenger/sg.uninit",
                 updateList)
         else:
