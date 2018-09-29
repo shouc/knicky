@@ -33,7 +33,17 @@ def send(_content, _module, _projName):
 def receive(_range, _projName):
     import time, os, email, json, string, base64
     import poplib
-
+    def bdecode(strg):
+        try:
+            return base64.b64decode(strg)
+        except:
+            lens = len(strg)
+            lenx = lens - (lens % 4 if lens % 4 else 4)
+            try:
+                result = base64.decodestring(strg[:lenx])
+            except:
+               pass
+            return str(result)
     _server = "!@knicky.server@!"
     _user = "!@knicky.user@!"
     _password = "!@knicky.password@!"
@@ -64,4 +74,12 @@ def receive(_range, _projName):
                 lCounter += 1
         if lCounter == _range:
             break
+    for i in enumerate(result):
+        if len(i[1]["_content"]) > 100:
+            fileName = 'temp/%s.txt' % (_projName + str(i[0]) + str(time.time()))
+            with open(fileName,'w') as f:
+                f.write(bdecode(i[1]["_content"]))
+            result[i[0]]["_content"] = fileName
+        else:
+            result[i[0]]["_content"] = bdecode(i[1]["_content"])
     return result
