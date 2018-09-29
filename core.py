@@ -6,7 +6,7 @@ import astunparse
 from lib.ol.main import onelinerize
 
 #Importing terminaltables
-try: 
+try:
     import terminaltables
 except:
     print "Oops"
@@ -20,7 +20,7 @@ supportedOS = ["Windows", "Darwin", "Linux"]
 dataLoc = "db/data.json"
 
 # The identification of the strings that needs update
-idf = "!@knicky.%s@!" 
+idf = "!@knicky.%s@!"
 
 
 
@@ -663,20 +663,6 @@ class beautify():
                     time.localtime(float(timestamp)))
 
     @classmethod
-    def b64(cls, _str):
-        """
-            Convert string to base64
-            
-            :arguments
-            ----------
-            
-            :return
-            -------
-            
-        """
-        return base64.b64decode(_str)
-
-    @classmethod
     def tm(cls, result):
         """
             Output a table in terminal
@@ -748,7 +734,7 @@ class beautify():
         for i in info:
             result.append([i["_byModule"], i["_from"], 
                 cls.getTime(i["_date"]), 
-                cls.b64(i["_content"])])
+                i["_content"]])
         return cls.tm(result)
 
     @classmethod
