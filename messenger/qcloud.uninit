@@ -1,0 +1,94 @@
+__sys__ = ["Windows", "Darwin", "Linux"]
+__name__ = "qcloud"
+__desc__ = "Use Qcloud (cloud.tencent.com)"
+
+def send(_content, _module, _projName):
+    from qcloud_cos import CosConfig
+    from qcloud_cos import CosS3Client
+    import time, base64, getpass
+    from random import randint
+    content = b"!knicky_msg!@msgstart@%s@msgend@" % {
+        "_content": base64.b64encode(_content),
+        "_id": "%s" % str(time.time()) + str(randint(0, 100)),
+        "_date": str(time.time()),
+        "_from": getpass.getuser(),
+        "_byModule": _module,
+        "_projName": _projName
+    }
+
+    _secretID = "!@knicky.secretID@!"
+    _secretKey = "!@knicky.secretKey@!"
+    _region = "!@knicky.region@!"
+    _bucket = "!@knicky.bucket@!"
+
+    _fileName = '!knicky_msg!%s.json' % (str(time.time()) \
+        + str(randint(0, 100)))
+    config = CosConfig(Region=_region, 
+        SecretId=_secretID, 
+        SecretKey=_secretKey, 
+        Token=None, 
+        Scheme="https")
+    client = CosS3Client(config)
+    response = client.put_object(
+        Bucket=_bucket,
+        Body="1",
+        Key=content,
+    )
+
+def receive(_range, _projName):
+    from qcloud_cos import CosConfig
+    from qcloud_cos import CosS3Client
+    import time, base64, getpass, json
+    def bdecode(strg):
+        try:
+            return base64.b64decode(strg)
+        except:
+            lens = len(strg)
+            lenx = lens - (lens % 4 if lens % 4 else 4)
+            try:
+                result = base64.decodestring(strg[:lenx])
+            except:
+               pass
+            return str(result)
+    _secretID = "!@knicky.secretID@!"
+    _secretKey = "!@knicky.secretKey@!"
+    _region = "!@knicky.region@!"
+    _bucket = "!@knicky.bucket@!"
+    config = CosConfig(Region=_region, 
+        SecretId=_secretID, 
+        SecretKey=_secretKey, 
+        Token=None, 
+        Scheme="https")
+    client = CosS3Client(config)
+    fileList = []
+    exactFileList = []
+    exactFileObj = []
+    responseName = client.list_objects(
+        Bucket=_bucket,
+        MaxKeys=10
+    )["Contents"]
+    for j in responseName:
+        fileList.append(j["Key"])
+        if "!knicky_msg!" in j["Key"]:
+            try:
+                exactFileList.append(j["Key"]\
+                    .split("!knicky_msg!@msgstart@")[1]\
+                    .split("@msgend@")[0])
+            except:
+                pass
+    if len(fileList) > len(exactFileList):
+        print "[!] Extra files"
+    for i in enumerate(exactFileList):
+        try:
+            jsonObj = json.loads(i[1].replace("'", '"'))
+            if len(jsonObj["_content"]) > 100:
+                fileName = 'temp/%s.txt' % (_projName + str(i[0]) + str(time.time()))
+                with open(fileName,'w') as f:
+                    f.write(bdecode(jsonObj["_content"]))
+                jsonObj["_content"] = fileName
+            else:
+                jsonObj["_content"] = bdecode(jsonObj["_content"])
+            exactFileObj.append(jsonObj)
+        except:
+            pass
+    return exactFileObj
