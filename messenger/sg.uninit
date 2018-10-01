@@ -1,7 +1,6 @@
 __sys__ = ["Windows", "Darwin", "Linux"]
 __name__ = "sendgrid"
 __desc__ = "Use sendgrid"
-__initiated__ = "required"
 
 def send(_content, _module, _projName):
     import time, os, email, json, string, base64
