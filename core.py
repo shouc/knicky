@@ -22,7 +22,9 @@ dataLoc = "db/data.json"
 # The identification of the strings that needs update
 idf = "!@knicky.%s@!"
 
-
+class updateBase():
+    def getU(self):
+        return self.updateList
 
 ############################
 #      Utils Functions     #
