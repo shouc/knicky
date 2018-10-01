@@ -1,13 +1,26 @@
 #-*- coding:utf-8 -*-
 
-import core
+import core, config
 import argparse
-
 from lib.logger import log
 from lib.msg import *
 
 #Importing libs
-import base64, time, random
+import base64, time, random, ast
+class utils():
+    @staticmethod
+    def getClassName():
+        classNames = []
+        for i in ast.walk(ast.parse(open("config.py").read())):
+            try:
+                if isinstance(i, ast.ClassDef):
+                    classNames.append(i.name)
+            except:
+                pass
+        return classNames
+
+def configUpdate(args):
+    print args
 
 def getModuleInfo(args):
     log.logTable(core.beautify.getModuleInfo())
@@ -91,6 +104,16 @@ def main():
         type=int)
     receiveInfoParser.set_defaults(func=receiveInfo)
 
+    #config
+    for i in utils.getClassName():
+        exec("configObj = config.%s()" % i)
+        exec("config%sParser = subparsers.add_parser('%s', help=descOfConfig)" % \
+            (i, i))
+        for j in configObj.getU():
+            exec("config%sParser.add_argument('--%s', help='%s')" % \
+                (i, j['original'], j['desc']))
+        exec("config%sParser.set_defaults(func=configUpdate, n='%s')" % \
+            (i, i))
 
     args = parser.parse_args()
     args.func(args)
