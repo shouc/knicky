@@ -20,7 +20,13 @@ class utils():
         return classNames
 
 def configUpdate(args):
-    print args
+    executeCode = "obj = config.%s(" % (args.n)
+    for i in args.param:
+        exec("val = args.%s" % i)
+        executeCode += "%s='%s', " % (i, val)
+    executeCode += "bypass=%s)" % (args.bypass)
+    exec("result = %s" % executeCode) 
+    print result.main()
 
 def getModuleInfo(args):
     log.logTable(core.beautify.getModuleInfo())
@@ -110,10 +116,14 @@ def main():
         exec("config%sParser = subparsers.add_parser('%s', help=descOfConfig)" % \
             (i, i))
         for j in configObj.getU():
-            exec("config%sParser.add_argument('--%s', help='%s')" % \
+            exec("config%sParser.add_argument('--%s', help='%s', required=True)" % \
                 (i, j['original'], j['desc']))
-        exec("config%sParser.set_defaults(func=configUpdate, n='%s')" % \
-            (i, i))
+        exec("""config%sParser.add_argument('-b', '--bypass', help='%s',
+            default=False)""" % \
+            (i, descOfBypass))
+        exec("""config%sParser.set_defaults(func=configUpdate, n='%s', 
+                param=%s)""" % \
+            (i, i, [x["original"] for x in configObj.getU()]))
 
     args = parser.parse_args()
     args.func(args)
