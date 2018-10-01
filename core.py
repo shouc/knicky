@@ -22,9 +22,38 @@ dataLoc = "db/data.json"
 # The identification of the strings that needs update
 idf = "!@knicky.%s@!"
 
+
+
+############################
+#        Config Base       #
+############################
 class updateBase():
+    def __init__(self):
+        self.stop = True
     def getU(self):
         return self.updateList
+    def main(self):
+        if self.stop or self.bypass:
+            try:
+                temp = open(self.fileName).read()
+                if not self.bypass:
+                    if utils.getSHA1(temp) == lib.sha1Info.sg:
+                        utils.updateFile(self.fileName,
+                            self.updateList)
+                        return "Success"
+                    else:
+                        return ("[!] Error! Template file (%s) is not correct"
+                            % utils.getSHA1(temp))
+                utils.updateFile(self.fileName,
+                            self.updateList)
+                return "Success"
+            except:
+                return "[!] Error! No template file found"
+        else:
+            return "[!] Please fix errors first"
+    def stop(self):
+        self.stop = False
+
 
 ############################
 #      Utils Functions     #
