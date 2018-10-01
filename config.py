@@ -1,4 +1,3 @@
-import core
 import lib.sha1Info
 from core import updateBase
 class sgUpdate(updateBase):
