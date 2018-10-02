@@ -10,20 +10,20 @@ class log(object):
 
     @staticmethod
     def logError(msg):
-        print "[Error]: %s%s%s"%(log.ERROR_COLOR, msg, log.END_COLOR)
+        print("[Error]: %s%s%s"%(log.ERROR_COLOR, msg, log.END_COLOR))
     
     @staticmethod
     def logWarn(msg):
-        print "[Warning]: %s%s%s"%(log.WARRING_COLOR, msg, log.END_COLOR)
+        print("[Warning]: %s%s%s"%(log.WARRING_COLOR, msg, log.END_COLOR))
 
     @staticmethod
     def logInfo(msg):
-        print "[Info]: %s%s%s"%(log.INFO_COLOR, msg, log.END_COLOR)
+        print("[Info]: %s%s%s"%(log.INFO_COLOR, msg, log.END_COLOR))
 
     @staticmethod
     def logPass(msg):
-        print "[Pass]: %s%s%s"%(log.PASS_COLOR, msg, log.END_COLOR)
+        print("[Pass]: %s%s%s"%(log.PASS_COLOR, msg, log.END_COLOR))
 
     @staticmethod
     def logTable(msg):
-        print "%s%s%s"%(log.PASS_COLOR, msg, log.END_COLOR)
+        print("%s%s%s"%(log.PASS_COLOR, msg, log.END_COLOR))
