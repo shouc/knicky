@@ -9,7 +9,7 @@ from lib.ol.main import onelinerize
 try:
     import terminaltables
 except:
-    print "Oops"
+    print("Oops")
 
 #Constants
 ignoreFiles = [".DS_Store", "__init__.py", "config.py"]
@@ -59,6 +59,23 @@ class updateBase():
 #      Utils Functions     #
 ############################
 class utils():
+    @staticmethod
+    def base64Encode(strx):
+        """
+            Convert the string to a base64 string
+            
+            :arguments
+            ----------
+            String
+                strx: the string needs to be converted
+            
+            :return
+            -------
+            String
+                the string encoded
+        """
+        return base64.b64encode(strx.encode("utf-8"))
+
     @staticmethod
     def convertSupportedOS(supportedOS):
         """
@@ -175,17 +192,17 @@ class utils():
             if i not in supportedOS:
                 info["success"] = 1
                 info["info"] = "OS not Supported"
-                print "[!] OS %s not Supported for file %s" % (i, file)
+                print("[!] OS %s not Supported for file %s" % (i, file))
         for k in info:
             if not info[k] and k in ["sys", "name", "desc"]:
                 info["success"] = 2
                 info["info"] = k
-                print "[!] No %s has been given in file %s" % (info["info"], 
-                    file)
+                print("[!] No %s has been given in file %s" % (info["info"], 
+                    file))
         if " " in info["name"]:
             info["success"] = 3
             info["info"] = "Space In Name"
-            print "[!] There should be no space in name of %s" % file
+            print("[!] There should be no space in name of %s" % file)
         return info
 
     @staticmethod
@@ -223,15 +240,15 @@ class utils():
                 except:
                     info["success"] = 4
                     info["info"] = "Error"
-                    print "[x] Error %s in file %s" % (sys.exc_info()[0], file)
+                    print("[x] Error %s in file %s" % (sys.exc_info()[0], file))
             if info["sendCode"] == "":
                 info["success"] = 5
                 info["info"] = "No Send Func"
-                print "[!] No 'send' function in file %s" % file
+                print("[!] No 'send' function in file %s" % file)
         except:
             info["success"] = 4
             info["info"] = "Error"
-            print "[x] Error %s in file %s" % (sys.exc_info()[0], file)
+            print("[x] Error %s in file %s" % (sys.exc_info()[0], file))
         return info
 
     @classmethod
@@ -299,19 +316,19 @@ class utils():
                 except:
                     info["success"] = 4
                     info["info"] = "Error"
-                    print "[x] Error %s in file %s" % (sys.exc_info()[0], file)
+                    print("[x] Error %s in file %s" % (sys.exc_info()[0], file))
             if info["sendCode"] == "":
                 info["success"] = 5
                 info["info"] = "No Send Func"
-                print "[!] No 'send' function in file %s" % file
+                print("[!] No 'send' function in file %s" % file)
             if info["receiveCode"] == "":
                 info["success"] = 5
                 info["info"] = "No Receive Func"
-                print "[!] No 'receive' function in file %s" % file
+                print("[!] No 'receive' function in file %s" % file)
         except:
             info["success"] = 4
             info["info"] = "Error"
-            print "[x] Error %s in file %s" % (sys.exc_info()[0], file)
+            print("[x] Error %s in file %s" % (sys.exc_info()[0], file))
         return info
 
     @classmethod
@@ -355,13 +372,13 @@ class utils():
                         if platform in i["sys"]:
                             return True 
                         else:
-                            print "[!] Module %s is not supporting %s, ignored" % (
-                         	module, platform)
+                            print("[!] Module %s is not supporting %s, ignored" % (
+                         	module, platform))
                             return False
                     else:
-                        print "[!] Module %s is not available, ignored" % module
+                        print("[!] Module %s is not available, ignored" % module)
                         return False
-        print "[!] Module %s is not available, ignored" % module
+        print("[!] Module %s is not available, ignored" % module)
         return False
 
     @staticmethod
@@ -380,7 +397,7 @@ class utils():
             data = json.loads(open(dataLoc).read())
             return data
         except Exception as e:
-            print "[x] Error in %s" % dataLoc
+            print("[x] Error in %s" % dataLoc)
             raise e
     
     @staticmethod
@@ -558,7 +575,7 @@ class API():
     @classmethod
     def createProj(cls, 
         moduleList, sendList, platform = 'Darwin',
-        projName = str(base64.b64encode(str(time.time() + 
+        projName = str(utils.base64Encode(str(time.time() + 
             random.randint(0,20000)))).replace("=", ""),
         sendPath = 'messenger',
         modulePath = "module"):
@@ -572,7 +589,7 @@ class API():
             -------
             
         """
-        print "[*] The project name is %s" % projName
+        print("[*] The project name is %s" % projName)
         data = utils.visitJSON()
         projects = data["projects"]
         virusCode = cls.createVirus(moduleList, sendList, projName, platform, 
@@ -580,14 +597,14 @@ class API():
         receiveCode = cls.createReceive(sendList, projName, platform, sendPath)
         projects.append({
             "projName" : projName,
-            "virusCode" : base64.b64encode(virusCode),
-            "receiveCode" : base64.b64encode(receiveCode),
+            "virusCode" : utils.base64Encode(virusCode),
+            "receiveCode" : utils.base64Encode(receiveCode),
             "time" : time.time()
         })
         data["projects"] = projects
         with open(dataLoc, "w") as file:
             json.dump(data, file)
-        print "[*] Success!!"
+        print("[*] Success!!")
         return virusCode
 
     @staticmethod
@@ -664,7 +681,7 @@ class API():
         data = utils.visitJSON()
         receiveCode = cls.getReceiveCode(projName)
         if receiveCode == "":
-            print "[x] Your entered wrong project name"
+            print("[x] Your entered wrong project name")
             return []
         else: 
             exec(receiveCode\
@@ -708,7 +725,7 @@ class beautify():
         try:
             return terminaltables.AsciiTable(result).table
         except Exception as e:
-            print "Error in terminaltables %s" % e
+            print("Error in terminaltables %s" % e)
 
     @classmethod
     def bM(cls, info):
