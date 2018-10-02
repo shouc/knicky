@@ -6,7 +6,7 @@ from lib.logger import log
 from lib.msg import *
 
 #Importing libs
-import base64, time, random, ast
+import time, random, ast
 class utils():
     @staticmethod
     def getClassName():
@@ -26,7 +26,7 @@ def configUpdate(args):
         executeCode += "%s='%s', " % (i, val)
     executeCode += "bypass=%s)" % (args.bypass)
     exec("result = %s" % executeCode) 
-    print result.main()
+    print(result.main())
 
 def getModuleInfo(args):
     log.logTable(core.beautify.getModuleInfo())
@@ -42,7 +42,7 @@ def createProj(args):
         platform = args.platform
     if not args.name:
         log.logWarn(nameWarn)
-        name = str(base64.b64encode(str(time.time() + 
+        name = str(core.utils.base64Encode(str(time.time() + 
             random.randint(0,20000)))).replace("=", "")
     else:
         name = args.name
