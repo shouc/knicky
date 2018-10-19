@@ -69,15 +69,13 @@ def receive(_range, _projName):
     )["Contents"]
     for j in responseName:
         fileList.append(j["Key"])
-        if "!knicky_msg!" in j["Key"]:
+        if "!knicky_msg!" in j["Key"] and _projName in j["Key"]:
             try:
                 exactFileList.append(j["Key"]\
                     .split("!knicky_msg!@msgstart@")[1]\
                     .split("@msgend@")[0])
             except:
                 pass
-    if len(fileList) > len(exactFileList):
-        print "[!] Extra files"
     for i in enumerate(exactFileList):
         try:
             jsonObj = json.loads(i[1].replace("'", '"'))
