@@ -535,7 +535,7 @@ class API():
             sendCode += "%s;" % (realSend["sendCode"])
         for i in realModuleList:
             for j in realSendList:
-                execCode += "%s(%s(), '%s', '%s');" % (
+                execCode += "%s(str(%s()), '%s', '%s');" % (
                     j["sendCodeFunc"], i["sendCodeFunc"], 
                     i["name"], projName)
         return moduleCode + sendCode + execCode
