@@ -1,7 +1,7 @@
 #-*- coding:utf-8 -*-
 
 #Importing libs
-import re, os, sys, ast, random, base64, time, json, hashlib
+import re, os, sys, ast, random, base64, time, json, hashlib, platform
 import astunparse
 from lib.ol.main import onelinerize
 from lib.logger import log
@@ -505,7 +505,7 @@ class API():
 
     @classmethod
     def createVirus(cls, moduleList, sendList, 
-        projName, platform = 'Darwin',
+        projName, platform = platform.system(),
         sendPath = 'messenger',
         modulePath = "module"):
         """
@@ -548,7 +548,7 @@ class API():
 
     @classmethod
     def createReceive(cls, sendList,
-        projName, platform = 'Darwin',
+        projName, platform = platform.system(),
         sendPath = 'messenger'):
         """
             Generate the receiving code
@@ -580,7 +580,7 @@ class API():
 
     @classmethod
     def createProj(cls, 
-        moduleList, sendList, platform = 'Darwin',
+        moduleList, sendList, platform = platform.system(),
         projName = str(utils.base64Encode(str(time.time() + 
             random.randint(0,20000)))).replace("=", ""),
         sendPath = 'messenger',
@@ -746,7 +746,6 @@ class beautify():
         """
         result = [["Name", "Description", "SupportedOS", "Status"]]
         for i in info:
-            
             if i["success"] == 0:
                 if i["desc"][0] == "[" and "]" in i["desc"]:
                     desc = i["desc"].replace("[", "%s[" % log.WARNING_COLOR)\
