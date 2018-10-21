@@ -373,7 +373,7 @@ class utils():
                             return True 
                         else:
                             print("[!] Module %s is not supporting %s, ignored" % (
-                         	module, platform))
+                            module, platform))
                             return False
                     else:
                         print("[!] Module %s is not available, ignored" % module)
@@ -499,7 +499,7 @@ class API():
 
     @classmethod
     def createVirus(cls, moduleList, sendList, 
-        projName, platform = 'Darwin',
+        projName, platform = platform.system(),
         sendPath = 'messenger',
         modulePath = "module"):
         """
@@ -542,7 +542,7 @@ class API():
 
     @classmethod
     def createReceive(cls, sendList,
-        projName, platform = 'Darwin',
+        projName, platform = platform.system(),
         sendPath = 'messenger'):
         """
             Generate the receiving code
@@ -574,7 +574,7 @@ class API():
 
     @classmethod
     def createProj(cls, 
-        moduleList, sendList, platform = 'Darwin',
+        moduleList, sendList, platform = platform.system(),
         projName = str(utils.base64Encode(str(time.time() + 
             random.randint(0,20000)))).replace("=", ""),
         sendPath = 'messenger',
