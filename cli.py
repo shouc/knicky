@@ -1,6 +1,6 @@
 #-*- coding:utf-8 -*-
 
-import core, config
+import lib.core, lib.config
 import argparse
 from lib.logger import log
 from lib.msg import *
