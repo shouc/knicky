@@ -1,12 +1,14 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
-import core, config
+import knicky, config
 import argparse
 from lib.logger import log
 from lib.msg import *
 
-#Importing libs
+# Importing libs
 import time, random, ast
+
+
 class utils():
     @staticmethod
     def getClassName():
@@ -19,6 +21,7 @@ class utils():
                 pass
         return classNames
 
+
 def configUpdate(args):
     executeCode = "obj = config.%s(" % (args.n)
     for i in args.param:
@@ -28,11 +31,20 @@ def configUpdate(args):
     exec("result = %s" % executeCode) 
     print(result.main())
 
+
 def getModuleInfo(args):
-    log.logTable(core.beautify.getModuleInfo())
+    if args.platform != None:
+        log.logTable(knicky.beautify.getModuleInfo(_os=args.platform.split('+')))
+    else:
+        log.logTable(knicky.beautify.getModuleInfo())
+
 
 def getSendInfo(args):
-    log.logTable(core.beautify.getSendInfo())
+    if args.platform != None:
+        log.logTable(knicky.beautify.getSendInfo(_os=args.platform.split('+')))
+    else:
+        log.logTable(knicky.beautify.getSendInfo())
+
 
 def createProj(args):
     if not args.platform:
@@ -42,12 +54,12 @@ def createProj(args):
         platform = args.platform
     if not args.name:
         log.logWarn(nameWarn)
-        name = str(core.utils.base64Encode(str(time.time() + 
-            random.randint(0,20000)))).replace("=", "")
+        name = str(knicky.utils.base64Encode(str(time.time() +
+                                                 random.randint(0,20000)))).replace("=", "")
     else:
         name = args.name
     print(
-        core.API.createProj(
+        knicky.API.createProj(
             moduleList=[i for i in args.moduleList.split("+")], 
             sendList=[i for i in args.sendList.split("+")], 
             platform=platform,
@@ -57,8 +69,10 @@ def createProj(args):
         )
     )
 
+
 def listProj(args):
-    log.logTable(core.beautify.listProj())
+    log.logTable(knicky.beautify.listProj())
+
 
 def receiveInfo(args):
     if not args.range:
@@ -67,27 +81,30 @@ def receiveInfo(args):
     else:
         _range = args.range
     log.logTable(
-        core.beautify.receiveInfo(
+        knicky.beautify.receiveInfo(
             projName=args.name,
             _range=_range
         )
     )
 
+
 def main():
     parser = argparse.ArgumentParser(description=descOfCLI)
     subparsers = parser.add_subparsers(help='commands')
 
-    #getModuleInfo
+    # getModuleInfo
     getModuleInfoParser = subparsers.add_parser('getModuleInfo', 
         help=descOfGetModuleInfo)
     getModuleInfoParser.set_defaults(func=getModuleInfo)
+    getModuleInfoParser.add_argument("-p", "--platform", help=descOfPlatform)
 
-    #getSendInfo
+    # getSendInfo
     getSendInfoParser = subparsers.add_parser('getSendInfo', 
         help=descOfGetSendInfo)
     getSendInfoParser.set_defaults(func=getSendInfo)
+    getSendInfoParser.add_argument("-p", "--platform", help=descOfPlatform)
 
-    #createVirus
+    # createVirus
     createProjParser = subparsers.add_parser('createProj', 
         help=descOfCreateProj)
     createProjParser.add_argument("moduleList", help=descOfModuleList)
@@ -97,12 +114,12 @@ def main():
     createProjParser.add_argument("-n", "--name", help=descOfProjName)
     createProjParser.set_defaults(func=createProj)
 
-    #listProj
+    # listProj
     listProjParser = subparsers.add_parser('listProj', 
         help=descOfListProj)
     listProjParser.set_defaults(func=listProj)
 
-    #receiveInfo
+    # receiveInfo
     receiveInfoParser = subparsers.add_parser('receiveInfo', 
         help=descOfReceiveInfo)
     receiveInfoParser.add_argument("name", help=descOfProjName)
@@ -110,7 +127,7 @@ def main():
         type=int)
     receiveInfoParser.set_defaults(func=receiveInfo)
 
-    #config
+    # config
     for i in utils.getClassName():
         exec("configObj = config.%s()" % i)
         exec("config%sParser = subparsers.add_parser('%s', help=descOfConfig)" % \
@@ -127,6 +144,7 @@ def main():
 
     args = parser.parse_args()
     args.func(args)
+
 
 if __name__ == '__main__':
     main()

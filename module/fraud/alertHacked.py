@@ -1,6 +1,7 @@
-__sys__ = ["Windows", "Darwin", "Linux"];
+__sys__ = ["Windows", "Darwin", "Linux"]
 __name__ = "alertHacked"
 __desc__ = "Show a dialog with 'Hacked' on screen"
+
 
 def send():
     import os, platform

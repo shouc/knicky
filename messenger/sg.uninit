@@ -2,6 +2,7 @@ __sys__ = ["Windows", "Darwin", "Linux"]
 __name__ = "sendgrid"
 __desc__ = "Use sendgrid"
 
+
 def send(_content, _module, _projName):
     import time, os, email, json, string, base64
     import sendgrid
@@ -28,6 +29,7 @@ def send(_content, _module, _projName):
     })
     mail = Mail(fromEmail, subject, toEmail, content)
     response = sg.client.mail.send.post(request_body=mail.get())
+
 
 def receive(_range, _projName):
     import time, os, email, json, string, base64

