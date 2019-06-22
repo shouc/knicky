@@ -109,7 +109,7 @@ def send():
     pass
 
 ```
-
+Make sure to put all import statement in `send()` to make the virus more concise and efficient.
 
 ## Develop Messenger
 
@@ -148,6 +148,7 @@ def receive(_range, _projName):
     """
     pass
 ```
+Make sure to put all import statement in `send()` / `receive()` to make the virus more concise and efficient.
 
 As different user has different credential for messenger (e.g. different API key for sendgrid), you can specify a configuration in `/config.py` and use `"!@knicky.xxxx@!"` to replace the original credential so that update function could understand.
 
