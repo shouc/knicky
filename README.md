@@ -1,5 +1,8 @@
 # Knicky
- ![How it works](https://travis-ci.org/shouc/knicky.svg?branch=master)
+ ![](https://travis-ci.org/shouc/knicky.svg?branch=master)
+ ![](https://camo.githubusercontent.com/4a42460f88f172b10e916fec11857648a8a2f2c8/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f706c6174666f726d2d6f73782532466c696e757825324677696e646f77732d677265656e2e737667)
+ ![](https://camo.githubusercontent.com/352488c0cbba0e8f6da11ae0761444dd0c93489c/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f707974686f6e2d322e372d626c75652e737667)
+
 Yet another module-based static virus generator 
 
 
