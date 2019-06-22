@@ -1,5 +1,5 @@
 # Knicky
-
+ ![How it works](https://travis-ci.org/shouc/knicky.svg?branch=master)
 Yet another module-based static virus generator 
 
 
@@ -22,6 +22,7 @@ You should know these conventions to understand following content
 * Project - each specific virus created
 
 ## Installation
+Please use Python 2.7ish!
 ```bash
 $ git clone https://github.com/shouc/knicky.git && cd knicky
 $ python -m pip install -r requirements/main.txt --user
